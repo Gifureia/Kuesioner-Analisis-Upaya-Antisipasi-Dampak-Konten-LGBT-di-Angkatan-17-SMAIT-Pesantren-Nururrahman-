@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuesioner Analisis Upaya Antisipasi Dampak Konten LGBT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <header class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 mb-8 text-center">
+            <h1 class="text-xl md:text-2xl font-bold text-emerald-700 uppercase tracking-wide mb-2">Kuesioner Penelitian</h1>
+            <p class="text-lg md:text-xl font-semibold text-gray-700 mb-4">Analisis Upaya Antisipasi Dampak Konten LGBT pada Angkatan 17 SMAIT Pesantren Nururrahman di Platform Media Sosial</p>
+            <div class="h-1 w-24 bg-emerald-500 mx-auto rounded-full"></div>
+        </header>
+
+        <form id="quizForm" onsubmit="handleSubmit(event)">
+            <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 mb-6">
+                <h2 class="text-lg font-bold text-gray-900 border-b pb-3 mb-4 flex items-center">
+                    <span class="bg-emerald-100 text-emerald-700 w-7 h-7 rounded-full flex items-center justify-center mr-2 text-sm">A</span>Identitas Responden (Anonim)
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Kelamin</label>
+                        <select required id="gender" class="w-full rounded-lg border-gray-300 shadow-sm border p-2.5 focus:border-emerald-500 focus:ring-emerald-500 bg-white">
+                            <option value="">-- Pilih Gender --</option>
+                            <option value="L">Laki-laki (L)</option>
+                            <option value="P">Perempuan (P)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
+                        <select required id="kelas" class="w-full rounded-lg border-gray-300 shadow-sm border p-2.5 focus:border-emerald-500 focus:ring-emerald-500 bg-white">
+                            <option value="">-- Pilih Kelas --</option>
+                            <option value="XI IPS 1">XI IPS 1</option>
+                            <option value="XI IPS 2">XI IPS 2</option>
+                            <option value="XI IPA 1">XI IPA 1</option>
+                            <option value="XI IPA 2">XI IPA 2</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Usia</label>
+                        <select required id="usia" class="w-full rounded-lg border-gray-300 shadow-sm border p-2.5 focus:border-emerald-500 focus:ring-emerald-500 bg-white">
+                            <option value="">-- Pilih Usia --</option>
+                            <option value="17">17 Tahun</option>
+                            <option value="18">18 Tahun</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-amber-50 rounded-2xl border border-amber-100 p-6 mb-8 text-amber-900">
+                <h2 class="text-base font-bold mb-2 flex items-center">Petunjuk Pengisian:</h2>
+                <ul class="text-sm space-y-1 list-disc list-inside opacity-90">
+                    <li>Bacalah setiap pernyataan dengan teliti sebelum menjawab.</li>
+                    <li>Pilih salah satu angka alternatif jawaban yang paling sesuai.</li>
+                </ul>
+                <div class="grid grid-cols-5 text-center text-xs font-semibold bg-white/80 rounded-xl p-3 mt-4 gap-1 text-gray-700">
+                    <div>1<br><span class="text-[10px] text-gray-500">STS</span></div>
+                    <div>2<br><span class="text-[10px] text-gray-500">TS</span></div>
+                    <div>3<br><span class="text-[10px] text-gray-500">R</span></div>
+                    <div>4<br><span class="text-[10px] text-gray-500">S</span></div>
+                    <div>5<br><span class="text-[10px] text-gray-500">SS</span></div>
+                </div>
+            </section>
+
+            <div id="questionnaire-container" class="space-y-6"></div>
+
+            <div class="mt-8 mb-12 text-center space-x-4 flex flex-wrap justify-center gap-4">
+                <button type="submit" id="btnSubmit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-xl shadow-md transition duration-200">
+                    Kirim Jawaban Kuesioner
+                </button>
+                <button type="button" onclick="bukaPanelAdminDenganPassword()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl shadow-md transition duration-200">
+                    Lihat Grafik Analisis (Untuk Peneliti)
+                </button>
+            </div>
+        </form>
+
+        <section id="panel-admin" class="hidden bg-white rounded-2xl shadow-lg border border-slate-200 p-6 md:p-8 mt-12 transition-all">
+            <div class="border-b pb-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 flex items-center">📊 Dashboard Analisis Riil</h2>
+                    <p class="text-sm text-slate-500 mt-1">Total Responden Masuk: <span id="total-responden-text" class="font-bold text-emerald-600">Memuat data...</span> orang</p>
+                </div>
+                <button onclick="document.getElementById('panel-admin').classList.add('hidden')" class="text-sm bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-3 py-1.5 rounded-lg transition">Tutup Panel</button>
+            </div>
+            <div id="charts-grid" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
+        </section>
+    </div>
+
+    <script>
+        // MASUKKAN URL GOOGLE APPS SCRIPT ANDA DI SINI
+        const API_URL = "https://script.google.com/macros/s/AKfycbzsE5DVRESrqvUr6fVbRDrLLv4uleJskPwCMb_6WHSuulrY3R_gHFrZVwqZRweUe54r/exec";
+        const PASSWORD_PENELITI = "rahasia123";
+
+        const dataSoal = [
+            { no: 1, ind: "1. Pengetahuan tentang bahaya konten LGBT", text: "Saya mengetahui bahwa konten LGBT di media sosial dapat memengaruhi pola pikir dan perilaku seseorang." },
+            { no: 2, ind: "1. Pengetahuan tentang bahaya konten LGBT", text: "Saya memahami bahwa paparan berulang terhadap konten LGBT dapat mengaburkan nilai-nilai moral yang saya pegang." },
+            { no: 3, ind: "1. Pengetahuan tentang bahaya konten LGBT", text: "Saya merasa konten LGBT di media sosial tidak berbahaya dan tidak perlu diwaspadai." },
+            { no: 4, ind: "1. Pengetahuan tentang bahaya konten LGBT", text: "Saya mengetahui cara mengenali konten LGBT yang bersifat propaganda di media sosial." },
+            { no: 5, ind: "1. Pengetahuan tentang bahaya konten LGBT", text: "Saya menyadari pentingnya mempelajari hukum Islam terkait LGBT sebagai bekal menghadapi konten tersebut." },
+            { no: 6, ind: "2. Penguatan nilai dan karakter Islami", text: "Saya secara aktif mengikuti kajian atau pengajian yang membahas tentang akhlak dan identitas gender dalam Islam." },
+            { no: 7, ind: "2. Penguatan nilai dan karakter Islami", text: "Nilai-nilai pesantren yang saya pelajari membantu saya menolak pengaruh konten LGBT." },
+            { no: 8, ind: "2. Penguatan nilai dan karakter Islami", text: "Saya jarang mengaitkan ajaran agama dengan sikap saya terhadap konten di media sosial." },
+            { no: 9, ind: "2. Penguatan nilai dan karakter Islami", text: "Pembiasaan ibadah di sekolah membuat saya lebih kuat menolak konten negatif termasuk LGBT." },
+            { no: 10, ind: "2. Penguatan nilai dan karakter Islami", text: "Saya meyakini bahwa identitas gender dan seksualitas dalam Islam sudah jelas batasannya." },
+            { no: 11, ind: "3. Tindakan preventif penggunaan media sosial", text: "Saya menggunakan fitur filter atau blokir konten untuk mencegah munculnya konten LGBT di beranda saya." },
+            { no: 12, ind: "3. Tindakan preventif penggunaan media sosial", text: "Saya membatasi waktu penggunaan media sosial agar tidak terlalu banyak terpapar konten negatif." },
+            { no: 13, ind: "3. Tindakan preventif penggunaan media sosial", text: "Saya sengaja mengikuti (follow) akun-akun yang mempromosikan konten Islami sebagai pengganti konten negatif." },
+            { no: 14, ind: "3. Tindakan preventif penggunaan media sosial", text: "Saya tidak peduli dengan jenis konten yang muncul di beranda media sosial saya." },
+            { no: 15, ind: "3. Tindakan preventif penggunaan media sosial", text: "Saya melaporkan (report) konten LGBT yang saya temukan di media sosial kepada platform." },
+            { no: 16, ind: "4. Dukungan lingkungan sosial (teman sebaya & ustadz/guru)", text: "Teman-teman saya di sekolah saling reminding untuk tidak mengakses konten LGBT." },
+            { no: 17, ind: "4. Dukungan lingkungan sosial (teman sebaya & ustadz/guru)", text: "Guru di sekolah memberikan bimbingan tentang cara menyikapi konten LGBT di media sosial." },
+            { no: 18, ind: "4. Dukungan lingkungan sosial (teman sebaya & ustadz/guru)", text: "Saya merasa tidak nyaman membahas isu LGBT dengan teman atau guru di lingkungan sekolah." },
+            { no: 19, ind: "4. Dukungan lingkungan sosial (teman sebaya & ustadz/guru)", text: "Lingkungan sekolah membuat saya merasa aman untuk tidak terpengaruh oleh konten LGBT." },
+            { no: 20, ind: "4. Dukungan lingkungan sosial (teman sebaya & ustadz/guru)", text: "Saya bersedia menegur teman yang mengakses atau menyebarkan konten LGBT." },
+            { no: 21, ind: "5. Frekuensi paparan konten LGBT di media sosial", text: "Saya sering menemukan konten yang berkaitan dengan LGBT saat menggunakan media sosial." },
+            { no: 22, ind: "5. Frekuensi paparan konten LGBT di media sosial", text: "Konten LGBT jarang muncul di beranda media sosial saya." },
+            { no: 23, ind: "5. Frekuensi paparan konten LGBT di media sosial", text: "Dalam sepekan terakhir, saya menemukan konten LGBT lebih dari satu kali di media sosial." },
+            { no: 24, ind: "5. Frekuensi paparan konten LGBT di media sosial", text: "Saya pernah secara tidak sengaja melihat konten LGBT saat menggunakan media sosial." },
+            { no: 25, ind: "6. Bentuk konten LGBT yang ditemukan", text: "Saya pernah menemukan konten LGBT dalam bentuk video atau film pendek di media sosial." },
+            { no: 26, ind: "6. Bentuk konten LGBT yang ditemukan", text: "Saya pernah menemukan unggahan foto atau meme yang mempromosikan gaya hidup LGBT." },
+            { no: 27, ind: "6. Bentuk konten LGBT yang ditemukan", text: "Saya pernah membaca komentar atau caption yang mendukung atau meromantisasi hubungan LGBT." },
+            { no: 28, ind: "6. Bentuk konten LGBT yang ditemukan", text: "Saya belum pernah menemukan akun media sosial yang secara terang-terangan mendukung LGBT." },
+            { no: 29, ind: "7. Dampak kognitif (perubahan pengetahuan & persepsi)", text: "Setelah melihat konten LGBT di media sosial, saya menjadi penasaran dan ingin mencari tahu lebih lanjut." },
+            { no: 30, ind: "7. Dampak kognitif (perubahan pengetahuan & persepsi)", text: "Konten LGBT yang saya lihat membuat saya mempertanyakan norma gender yang selama ini saya yakini." },
+            { no: 31, ind: "7. Dampak kognitif (perubahan pengetahuan & persepsi)", text: "Saya tetap yakin dengan pandangan Islam tentang gender meskipun sering melihat konten LGBT." },
+            { no: 32, ind: "7. Dampak kognitif (perubahan pengetahuan & persepsi)", text: "Paparan konten LGBT membuat saya lebih memahami bahwa fenomena tersebut adalah masalah sosial yang perlu disikapi." },
+            { no: 33, ind: "7. Dampak kognitif (perubahan pengetahuan & persepsi)", text: "Saya merasa konten LGBT di media sosial tidak memengaruhi cara pandang saya sama sekali." },
+            { no: 34, ind: "8. Dampak afektif (perubahan sikap & perasaan)", text: "Saya merasa tidak nyaman ketika melihat konten LGBT di media sosial." },
+            { no: 35, ind: "8. Dampak afektif (perubahan sikap & perasaan)", text: "Saya merasa konten LGBT yang ada di media sosial adalah sesuatu yang wajar dan biasa saja." },
+            { no: 36, ind: "8. Dampak afektif (perubahan sikap & perasaan)", text: "Saya merasa empati berlebihan terhadap tokoh-tokoh LGBT yang digambarkan sebagai korban dalam konten media sosial." },
+            { no: 37, ind: "8. Dampak afektif (perubahan sikap & perasaan)", text: "Setelah melihat konten LGBT, saya semakin termotivasi untuk memperkuat iman dan akhlak saya." },
+            { no: 38, ind: "8. Dampak afektif (perubahan sikap & perasaan)", text: "Saya tidak merasa terganggu secara emosional saat menemukan konten LGBT di media sosial." },
+            { no: 39, ind: "9. Dampak konatif (perubahan perilaku & tindakan)", text: "Saya pernah menyukai (like) atau membagikan (share) konten yang bertemakan LGBT di media sosial." },
+            { no: 40, ind: "9. Dampak konatif (perubahan perilaku & tindakan)", text: "Saya menghindar dan langsung menggulir (scroll) ketika menemukan konten LGBT di media sosial." },
+            { no: 41, ind: "9. Dampak konatif (perubahan perilaku & tindakan)", text: "Saya pernah mengikuti diskusi online yang membahas atau mendukung LGBT." },
+            { no: 42, ind: "9. Dampak konatif (perubahan perilaku & tindakan)", text: "Saya aktif mencari konten Islami sebagai respons atas banyaknya konten LGBT yang beredar." },
+            { no: 43, ind: "9. Dampak konatif (perubahan perilaku & tindakan)", text: "Saya berusaha memberikan komentar yang meluruskan ketika melihat konten LGBT di media sosial." },
+            { no: 44, ind: "10. Dampak terhadap identitas diri & keyakinan agama", text: "Paparan konten LGBT di media sosial membuat saya semakin ragu dengan identitas gender saya sebagai muslim/muslimah." },
+            { no: 45, ind: "10. Dampak terhadap identitas diri & keyakinan agama", text: "Saya merasa keyakinan agama saya cukup kuat sehingga tidak goyah oleh konten LGBT yang beredar." },
+            { no: 46, ind: "10. Dampak terhadap identitas diri & keyakinan agama", text: "Saya khawatir bahwa konten LGBT yang terus beredar dapat memengaruhi teman-teman saya yang imannya lebih lemah." },
+            { no: 47, ind: "10. Dampak terhadap identitas diri & keyakinan agama", text: "Saya semakin bangga dengan identitas Islam saya setelah menyadari bahaya konten LGBT." }
+        ];
+
+        // Render pertanyaan kuesioner ke halaman HTML
+        const container = document.getElementById('questionnaire-container');
+        let currentInd = "";
+        dataSoal.forEach((soal) => {
+            if (soal.ind && soal.ind !== currentInd) {
+                currentInd = soal.ind;
+                const indHeader = document.createElement('h4');
+                indHeader.className = "text-sm font-semibold text-emerald-600 mt-8 mb-2 bg-emerald-50 px-3 py-1.5 rounded-lg inline-block";
+                indHeader.innerText = currentInd;
+                container.appendChild(indHeader);
+            }
+            const itemBlock = document.createElement('div');
+            itemBlock.className = "bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-6 mb-4";
+            itemBlock.innerHTML = `
+                <div class="flex items-start mb-4">
+                    <span class="text-gray-400 font-medium mr-2 mt-0.5">${soal.no}.</span>
+                    <p class="text-gray-800 font-medium">${soal.text}</p>
+                </div>
+                <div class="grid grid-cols-5 gap-2 max-w-xl mx-auto md:mx-7">
+                    ${[1, 2, 3, 4, 5].map(val => `
+                        <label class="flex flex-col items-center justify-center p-2.5 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer hover:bg-emerald-50 transition-colors">
+                            <input type="radio" name="q_${soal.no}" value="${val}" required class="text-emerald-600 mb-1">
+                            <span class="text-xs text-gray-600 font-medium">${val}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(itemBlock);
+        });
+
+        // Submit Jawaban secara Online ke Google Sheets
+        function handleSubmit(event) {
+            event.preventDefault();
+            const btnSubmit = document.getElementById('btnSubmit');
+            btnSubmit.innerText = "Mengirim...";
+            btnSubmit.disabled = true;
+
+            let payload = {
+                gender: document.getElementById('gender').value,
+                kelas: document.getElementById('kelas').value,
+                usia: document.getElementById('usia').value
+            };
+            
+            dataSoal.forEach(soal => {
+                const checked = document.querySelector(`input[name="q_${soal.no}"]:checked`);
+                payload[`q_${soal.no}`] = checked ? parseInt(checked.value) : 0;
+            });
+
+            fetch(API_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                alert("Terima kasih! Jawaban kuesioner Anda berhasil tersimpan di server database online.");
+                document.getElementById('quizForm').reset();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }).catch(err => {
+                alert("Terjadi kesalahan pengiriman online.");
+                console.error(err);
+            }).finally(() => {
+                btnSubmit.innerText = "Kirim Jawaban Kuesioner";
+                btnSubmit.disabled = false;
+            });
+        }
+
+        // Buka Panel Utama Peneliti dengan Proteksi Password & Fetch Live Data dari Google Sheets
+        function bukaPanelAdminDenganPassword() {
+            const inputPassword = prompt("Masukkan Password Khusus Peneliti untuk melihat grafik:");
+            if (inputPassword === PASSWORD_PENELITI) {
+                tampilkanPanelAdmin();
+            } else if (inputPassword !== null) {
+                alert("Password Salah!");
+            }
+        }
+
+        function tampilkanPanelAdmin() {
+            const panel = document.getElementById('panel-admin');
+            const chartsGrid = document.getElementById('charts-grid');
+            panel.classList.remove('hidden');
+            chartsGrid.innerHTML = '';
+            panel.scrollIntoView({ behavior: 'smooth' });
+
+            document.getElementById('total-responden-text').innerText = "Memuat data...";
+
+            // Mengambil live data hasil kuesioner dari Google Sheets
+            fetch(API_URL)
+            .then(res => res.json())
+            .then(databaseKuesioner => {
+                document.getElementById('total-responden-text').innerText = databaseKuesioner.length;
+
+                dataSoal.forEach((soal) => {
+                    const chartCard = document.createElement('div');
+                    chartCard.className = "bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between";
+                    chartCard.innerHTML = `
+                        <div class="mb-3">
+                            <span class="text-xs font-bold px-2 py-1 bg-slate-200 text-slate-700 rounded-md">Soal No. ${soal.no}</span>
+                            <p class="text-sm font-semibold text-slate-800 mt-2">${soal.text}</p>
+                        </div>
+                        <div class="relative w-full h-48 bg-white p-2 rounded-lg border border-slate-100">
+                            <canvas id="canvas_q_${soal.no}"></canvas>
+                        </div>
+                    `;
+                    chartsGrid.appendChild(chartCard);
+
+                    let frekuensiJawaban = [0, 0, 0, 0, 0]; 
+                    databaseKuesioner.forEach(data => {
+                        let nilai = data[`q_${soal.no}`];
+                        if(nilai >= 1 && nilai <= 5) {
+                            frekuensiJawaban[nilai - 1]++;
+                        }
+                    });
+
+                    const ctx = document.getElementById(`canvas_q_${soal.no}`).getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['1 (STS)', '2 (TS)', '3 (R)', '4 (S)', '5 (SS)'],
+                            datasets: [{
+                                label: 'Jumlah Pemilih',
+                                data: frekuensiJawaban,
+                                backgroundColor: ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#10b981'],
+                                borderRadius: 4
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                x: { beginAtZero: true, ticks: { stepSize: 1, color: '#64748b' } },
+                                y: { ticks: { color: '#475569', font: { weight: 'bold' } }, grid: { display: false } }
+                            }
+                        }
+                    });
+                });
+            }).catch(err => {
+                document.getElementById('total-responden-text').innerText = "Gagal memuat data.";
+                console.error(err);
+            });
+        }
+    </script>
+</body>
+</html>
