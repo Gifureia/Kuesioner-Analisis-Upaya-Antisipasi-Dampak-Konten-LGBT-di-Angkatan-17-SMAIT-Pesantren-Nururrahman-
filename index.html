@@ -130,7 +130,7 @@
     </div>
 
     <script>
-        // ISI URL DAN PASSWORD DI SINI
+        // PENTING: GANTI TEXT DI BAWAH INI DENGAN URL GOOGLE APPS SCRIPT ANDA
         const API_URL = "function doPost(e) {
   try {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
@@ -180,7 +180,7 @@ function doGet() {
         const dataSoal = [
             { no: 1, ind: "1. Pengetahuan tentang bahaya konten LGBT", text: "Saya mengetahui bahwa konten LGBT di media sosial dapat memengaruhi pola pikir dan perilaku seseorang." },
             { no: 2, ind: "1. Pengetahuan tentang bahaya konten LGBT", text: "Saya memahami bahwa paparan berulang terhadap konten LGBT dapat mengaburkan nilai-nilai moral yang saya pegang." },
-            { no: 3, ind: "1. Pengetahuan tentang bahaya konten LGBT", text: "Saya merasa konten LGBT di media sosial tidak berbahaya and tidak perlu diwaspadai." },
+            { no: 3, ind: "1. Pengetahuan tentang bahaya konten LGBT", text: "Saya merasa konten LGBT di media sosial tidak berbahaya dan tidak perlu diwaspadai." },
             { no: 4, ind: "1. Pengetahuan tentang bahaya konten LGBT", text: "Saya mengetahui cara mengenali konten LGBT yang bersifat propaganda di media sosial." },
             { no: 5, ind: "1. Pengetahuan tentang bahaya konten LGBT", text: "Saya menyadari pentingnya mempelajari hukum Islam terkait LGBT sebagai bekal menghadapi konten tersebut." },
             { no: 6, ind: "2. Penguatan nilai dan karakter Islami", text: "Saya secara aktif mengikuti kajian atau pengajian yang membahas tentang akhlak dan identitas gender dalam Islam." },
@@ -189,7 +189,7 @@ function doGet() {
             { no: 9, ind: "2. Penguatan nilai dan karakter Islami", text: "Pembiasaan ibadah di sekolah membuat saya lebih kuat menolak konten negatif termasuk LGBT." },
             { no: 10, ind: "2. Penguatan nilai dan karakter Islami", text: "Saya meyakini bahwa identitas gender dan seksualitas dalam Islam sudah jelas batasannya." },
             { no: 11, ind: "3. Tindakan preventif penggunaan media sosial", text: "Saya menggunakan fitur filter atau blokir konten untuk mencegah munculnya konten LGBT di beranda saya." },
-            { no: 12, id: "3. Tindakan preventif penggunaan media sosial", text: "Saya membatasi waktu penggunaan media sosial agar tidak terlalu banyak terpapar konten negatif." },
+            { no: 12, ind: "3. Tindakan preventif penggunaan media sosial", text: "Saya membatasi waktu penggunaan media sosial agar tidak terlalu banyak terpapar konten negatif." },
             { no: 13, ind: "3. Tindakan preventif penggunaan media sosial", text: "Saya sengaja mengikuti (follow) akun-akun yang mempromosikan konten Islami sebagai pengganti konten negatif." },
             { no: 14, ind: "3. Tindakan preventif penggunaan media sosial", text: "Saya tidak peduli dengan jenis konten yang muncul di beranda media sosial saya." },
             { no: 15, ind: "3. Tindakan preventif penggunaan media sosial", text: "Saya melaporkan (report) konten LGBT yang saya temukan di media sosial kepada platform." },
@@ -214,7 +214,7 @@ function doGet() {
             { no: 34, ind: "8. Dampak afektif (perubahan sikap & perasaan)", text: "Saya merasa tidak nyaman ketika melihat konten LGBT di media sosial." },
             { no: 35, ind: "8. Dampak afektif (perubahan sikap & perasaan)", text: "Saya merasa konten LGBT yang ada di media sosial adalah sesuatu yang wajar dan biasa saja." },
             { no: 36, ind: "8. Dampak afektif (perubahan sikap & perasaan)", text: "Saya merasa empati berlebihan terhadap tokoh-tokoh LGBT yang digambarkan sebagai korban dalam konten media sosial." },
-            { no: 37, ind: "8. Dampak afektif (perubahan sikap & perasaan)", text: "Setelah melihat konten LGBT, saya semakin termotivasi untuk memperkuat iman dan akhlak saya." },
+            { no: 37, id: "8. Dampak afektif (perubahan sikap & perasaan)", text: "Setelah melihat konten LGBT, saya semakin termotivasi untuk memperkuat iman dan akhlak saya." },
             { no: 38, ind: "8. Dampak afektif (perubahan sikap & perasaan)", text: "Saya tidak merasa terganggu secara emosional saat menemukan konten LGBT di media sosial." },
             { no: 39, ind: "9. Dampak konatif (perubahan perilaku & tindakan)", text: "Saya pernah menyukai (like) atau membagikan (share) konten yang bertemakan LGBT di media sosial." },
             { no: 40, ind: "9. Dampak konatif (perubahan perilaku & tindakan)", text: "Saya menghindar dan langsung menggulir (scroll) ketika menemukan konten LGBT di media sosial." },
@@ -229,9 +229,10 @@ function doGet() {
 
         const container = document.getElementById('questionnaire-container');
         let currentInd = "";
+        
         dataSoal.forEach((soal) => {
             if (soal.ind && soal.ind !== currentInd) {
-                currentInd = soar = soal.ind;
+                currentInd = soal.ind;
                 const indHeader = document.createElement('h4');
                 indHeader.className = "text-sm font-semibold text-emerald-600 mt-8 mb-2 bg-emerald-50 px-3 py-1.5 rounded-lg inline-block";
                 indHeader.innerText = currentInd;
@@ -262,7 +263,6 @@ function doGet() {
             btnSubmit.innerText = "Mengirim...";
             btnSubmit.disabled = true;
 
-            // Mengambil semua pilihan checkbox sosmed responden
             const checkboxes = document.querySelectorAll('input[name="sosmed"]:checked');
             let sosmedTerpilih = Array.from(checkboxes).map(cb => cb.value);
             const lain = document.getElementById('sosmed_lainnya').value.trim();
