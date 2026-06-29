@@ -131,6 +131,7 @@
     </div>
 
     <script>
+        const API_URL = https://script.google.com/macros/s/AKfycbziYMA9QWg9XId5Q1XKQkQ4iPiosK8RYSvTReCvSb4wOj2ICLIrVecM0WgO-OjxOEv3/exec;
         // PASSWORD RAHASIA ANDA (Silakan ubah teks di dalam tanda kutip jika ingin mengganti password)
         const KODE_AKSES_RAHASIA = "admin123";
 
@@ -184,128 +185,157 @@
             { no: 47, ind: "10. Dampak terhadap identitas diri & keyakinan agama", text: "Saya semakin bangga dengan identitas Islam saya setelah menyadari bahaya konten LGBT." }
         ];
 
-        // DATABASE SIMULASI: Tempat menampung data riil yang diisi (Awalnya kosong)
-        let databaseKuesioner = [];
+       const container = document.getElementById('questionnaire-container');
+let currentInd = "";
 
-        const container = document.getElementById('questionnaire-container');
-        let currentInd = "";
+// GENERATE PERTANYAAN KUESIONER DI LAYAR
+dataSoal.forEach((soal) => {
+    const kategoriIndikator = soal.ind || "Kategori Lain";
 
-        // GENERATE PERTANYAAN KUESIONER
+    if (kategoriIndikator !== currentInd) {
+        currentInd = kategoriIndikator;
+        const indHeader = document.createElement('h4');
+        indHeader.className = "text-sm font-semibold text-emerald-600 mt-8 mb-2 bg-emerald-50 px-3 py-1.5 rounded-lg inline-block";
+        indHeader.innerText = currentInd;
+        container.appendChild(indHeader);
+    }
+
+    const itemBlock = document.createElement('div');
+    itemBlock.className = "bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-6 mb-4 hover:shadow-md transition-shadow";
+    itemBlock.innerHTML = `
+        <div class="flex items-start mb-4">
+            <span class="text-gray-400 font-medium mr-2 mt-0.5 text-sm md:text-base">${soal.no}.</span>
+            <p class="text-gray-800 font-medium text-sm md:text-base">${soal.text}</p>
+        </div>
+        <div class="grid grid-cols-5 gap-2 max-w-xl mx-auto md:mx-7">
+            ${[1, 2, 3, 4, 5].map(val => `
+                <label class="flex flex-col items-center justify-center p-2.5 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer hover:bg-emerald-50 hover:border-emerald-200 transition-colors">
+                    <input type="radio" name="q_${soal.no}" value="${val}" required class="text-emerald-600 focus:ring-emerald-500 mb-1 w-4 h-4">
+                    <span class="text-xs text-gray-600 font-medium">${val}</span>
+                </label>
+            `).join('')}
+        </div>
+    `;
+    container.appendChild(itemBlock);
+});
+
+// FUNGSI MEMBACA DATA DARI GOOGLE SHEETS DAN MEMBUAT GRAFIK batang
+async function renderSemuaGrafik() {
+    const chartsGrid = document.getElementById('charts-grid');
+    chartsGrid.innerHTML = '<p class="text-center text-gray-500 col-span-2 py-8">Memuat data grafik dari Google Sheets...</p>';
+
+    try {
+        const response = await fetch(API_URL);
+        const databaseKuesioner = await response.json();
+
+        chartsGrid.innerHTML = '';
+        if (databaseKuesioner.length === 0) {
+            chartsGrid.innerHTML = '<p class="text-center text-gray-500 col-span-2 py-8">Belum ada data responden yang masuk.</p>';
+            return;
+        }
+
         dataSoal.forEach((soal) => {
-            const kategoriIndikator = soal.ind || soal.fill || "Kategori Lain";
-
-            if (kategoriIndikator !== currentInd) {
-                currentInd = kategoriIndikator;
-                const indHeader = document.createElement('h4');
-                indHeader.className = "text-sm font-semibold text-emerald-600 mt-8 mb-2 bg-emerald-50 px-3 py-1.5 rounded-lg inline-block";
-                indHeader.innerText = currentInd;
-                container.appendChild(indHeader);
-            }
-
-            const itemBlock = document.createElement('div');
-            itemBlock.className = "bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-6 mb-4 hover:shadow-md transition-shadow";
-            itemBlock.innerHTML = `
-                <div class="flex items-start mb-4">
-                    <span class="text-gray-400 font-medium mr-2 mt-0.5 text-sm md:text-base">${soal.no}.</span>
-                    <p class="text-gray-800 font-medium text-sm md:text-base">${soal.text}</p>
+            const chartCard = document.createElement('div');
+            chartCard.className = "bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col justify-between shadow-sm";
+            chartCard.innerHTML = `
+                <div class="mb-2">
+                    <span class="text-[10px] font-bold px-2 py-0.5 bg-gray-200 text-gray-700 rounded">No. ${soal.no}</span>
+                    <p class="text-xs font-semibold text-gray-700 mt-1">${soal.text}</p>
                 </div>
-                <div class="grid grid-cols-5 gap-2 max-w-xl mx-auto md:mx-7">
-                    ${[1, 2, 3, 4, 5].map(val => `
-                        <label class="flex flex-col items-center justify-center p-2.5 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer hover:bg-emerald-50 hover:border-emerald-200 transition-colors">
-                            <input type="radio" name="q_${soal.no}" value="${val}" required class="text-emerald-600 focus:ring-emerald-500 mb-1 w-4 h-4">
-                            <span class="text-xs text-gray-600 font-medium">${val}</span>
-                        </label>
-                    `).join('')}
+                <div class="relative w-full h-32 bg-white p-1 rounded border">
+                    <canvas id="canvas_q_${soal.no}"></canvas>
                 </div>
             `;
-            container.appendChild(itemBlock);
+            chartsGrid.appendChild(chartCard);
+
+            let frekuensi = [0, 0, 0, 0, 0];
+            databaseKuesioner.forEach(res => {
+                let nilai = res[`q_${soal.no}`];
+                if (nilai >= 1 && nilai <= 5) frekuensi[nilai - 1]++;
+            });
+
+            const ctx = document.getElementById(`canvas_q_${soal.no}`).getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['1', '2', '3', '4', '5'],
+                    datasets: [{
+                        data: frekuensi,
+                        backgroundColor: ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#10b981'],
+                        borderRadius: 3
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 } } },
+                        y: { ticks: { font: { size: 9, weight: 'bold' } }, grid: { display: false } }
+                    }
+                }
+            });
+        });
+    } catch (e) {
+        chartsGrid.innerHTML = '<p class="text-center text-red-500 col-span-2 py-8">Gagal memuat grafik. Periksa kembali API_URL Anda.</p>';
+    }
+}
+
+// FUNGSI MEMBACA PASSWORD RAHASIA UNTUK LIHAT GRAFIK
+function bukaPanelRahasia() {
+    const passwordInput = prompt("Masukkan password khusus peneliti untuk melihat hasil grafik:");
+    if (passwordInput === KODE_AKSES_RAHASIA) {
+        const panel = document.getElementById('panel-admin');
+        panel.classList.remove('hidden');
+        renderSemuaGrafik();
+        panel.scrollIntoView({ behavior: 'smooth' });
+    } else if (passwordInput !== null) {
+        alert("Password Salah! Akses ditolak.");
+    }
+}
+
+// FUNGSI KIRIM JAWABAN ONLINE KE GOOGLE SHEETS
+async function handleSubmit(event) {
+    event.preventDefault();
+    
+    let sosmedChecked = [];
+    document.querySelectorAll('input[name="sosmed"]:checked').forEach(cb => {
+        sosmedChecked.push(cb.value);
+    });
+
+    let paketData = {
+        gender: document.getElementById('gender').value,
+        kelas: document.getElementById('kelas').value,
+        usia: document.getElementById('usia').value,
+        sosmed: sosmedChecked.join(', '),
+        sosmed_lainnya: document.getElementById('sosmed_lainnya').value
+    };
+
+    dataSoal.forEach(soal => {
+        const checked = document.querySelector(`input[name="q_${soal.no}"]:checked`);
+        paketData[`q_${soal.no}`] = checked ? parseInt(checked.value) : 0;
+    });
+
+    alert("Sedang mengirim jawaban Anda secara online...");
+
+    try {
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify(paketData)
         });
 
-        // RE-RENDER GRAFIK (HANYA AKTIF SAAT LOG IN BERHASIL)
-        function renderSemuaGrafik() {
-            const chartsGrid = document.getElementById('charts-grid');
-            chartsGrid.innerHTML = '';
+        alert("Terima kasih! Jawaban Anda telah sukses tersimpan permanen di Google Sheets.");
+        document.getElementById('quizForm').reset();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            dataSoal.forEach((soal) => {
-                const chartCard = document.createElement('div');
-                chartCard.className = "bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col justify-between shadow-sm";
-                chartCard.innerHTML = `
-                    <div class="mb-2">
-                        <span class="text-[10px] font-bold px-2 py-0.5 bg-gray-200 text-gray-700 rounded">No. ${soal.no}</span>
-                        <p class="text-xs font-semibold text-gray-700 mt-1">${soal.text}</p>
-                    </div>
-                    <div class="relative w-full h-32 bg-white p-1 rounded border">
-                        <canvas id="canvas_q_${soal.no}"></canvas>
-                    </div>
-                `;
-                chartsGrid.appendChild(chartCard);
-
-                let frekuensi = [0, 0, 0, 0, 0];
-                databaseKuesioner.forEach(res => {
-                    let nilai = res[`q_${soal.no}`];
-                    if (nilai >= 1 && nilai <= 5) frekuensi[nilai - 1]++;
-                });
-
-                const ctx = document.getElementById(`canvas_q_${soal.no}`).getContext('2d');
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['1', '2', '3', '4', '5'],
-                        datasets: [{
-                            data: frekuensi,
-                            backgroundColor: ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#10b981'],
-                            borderRadius: 3
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 } } },
-                            y: { ticks: { font: { size: 9, weight: 'bold' } }, grid: { display: false } }
-                        }
-                    }
-                });
-            });
+        if (!document.getElementById('panel-admin').classList.contains('hidden')) {
+            renderSemuaGrafik();
         }
-
-        // FUNGSI MEMBUKA PANEL RAHASIA DENGAN PASSWORD
-        function bukaPanelRahasia() {
-            const passwordInput = prompt("Masukkan password khusus peneliti untuk melihat hasil grafik:");
-            
-            if (passwordInput === KODE_AKSES_RAHASIA) {
-                const panel = document.getElementById('panel-admin');
-                panel.classList.remove('hidden');
-                renderSemuaGrafik();
-                panel.scrollIntoView({ behavior: 'smooth' });
-            } else if (passwordInput !== null) {
-                alert("Password Salah! Akses ditolak.");
-            }
-        }
-
-        // KETIKA TOMBOL SUBMIT DIKLIK OLEH SISWA
-        function handleSubmit(event) {
-            event.preventDefault();
-            
-            let jawabanBaru = {};
-            dataSoal.forEach(soal => {
-                const checked = document.querySelector(`input[name="q_${soal.no}"]:checked`);
-                jawabanBaru[`q_${soal.no}`] = checked ? parseInt(checked.value) : 0;
-            });
-
-            databaseKuesioner.push(jawabanBaru);
-
-            alert("Terima kasih! Jawaban kuesioner Anda berhasil tersimpan.");
-            document.getElementById('quizForm').reset();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-
-            // Jika panel admin kebetulan lagi terbuka, update grafiknya langsung
-            if (!document.getElementById('panel-admin').classList.contains('hidden')) {
-                renderSemuaGrafik();
-            }
-        }
+    } catch (error) {
+        alert("Gagal mengirim data, periksa koneksi internet Anda dan coba lagi.");
+    }
+}
     </script>
 </body>
 </html>
