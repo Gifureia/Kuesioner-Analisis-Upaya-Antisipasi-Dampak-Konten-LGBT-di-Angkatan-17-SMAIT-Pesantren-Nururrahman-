@@ -189,6 +189,7 @@
             { no: 47, ind: "10. Dampak terhadap identitas diri & keyakinan agama", text: "Saya semakin bangga dengan identitas Islam saya setelah menyadari bahaya konten LGBT." }
         ];
 
+        let databaseBackupLokal = [];
         const container = document.getElementById('questionnaire-container');
         let currentInd = "";
 
@@ -223,70 +224,76 @@
             container.appendChild(itemBlock);
         });
 
-        // FUNGSI MEMBACA DATA DARI GOOGLE SHEETS DAN MEMBUAT GRAFIK BATANG
+        // FUNGSI MEMBACA DATA DAN MEMBUAT GRAFIK
         async function renderSemuaGrafik() {
             const chartsGrid = document.getElementById('charts-grid');
-            chartsGrid.innerHTML = '<p class="text-center text-gray-500 col-span-2 py-8">Memuat data grafik dari Google Sheets...</p>';
+            chartsGrid.innerHTML = '<p class="text-center text-gray-500 col-span-2 py-8">Memuat data...</p>';
 
-            try {
-                const response = await fetch(API_URL);
-                const databaseKuesioner = await response.json();
+            let dataResponden = [];
 
-                chartsGrid.innerHTML = '';
-                if (!databaseKuesioner || databaseKuesioner.length === 0) {
-                    chartsGrid.innerHTML = '<p class="text-center text-gray-500 col-span-2 py-8">Belum ada data responden yang masuk.</p>';
-                    return;
+            if (API_URL !== "") {
+                try {
+                    const response = await fetch(API_URL);
+                    dataResponden = await response.json();
+                } catch (e) {
+                    chartsGrid.innerHTML = '<p class="text-center text-red-500 col-span-2 py-8">Gagal mengambil data dari Google Sheets. Menggunakan database lokal.</p>';
+                    dataResponden = databaseBackupLokal;
                 }
-
-                dataSoal.forEach((soal) => {
-                    const chartCard = document.createElement('div');
-                    chartCard.className = "bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col justify-between shadow-sm";
-                    chartCard.innerHTML = `
-                        <div class="mb-2">
-                            <span class="text-[10px] font-bold px-2 py-0.5 bg-gray-200 text-gray-700 rounded">No. ${soal.no}</span>
-                            <p class="text-xs font-semibold text-gray-700 mt-1">${soal.text}</p>
-                        </div>
-                        <div class="relative w-full h-32 bg-white p-1 rounded border">
-                            <canvas id="canvas_q_${soal.no}"></canvas>
-                        </div>
-                    `;
-                    chartsGrid.appendChild(chartCard);
-
-                    let frekuensi = [0, 0, 0, 0, 0];
-                    databaseKuesioner.forEach(res => {
-                        let nilai = res[`q_${soal.no}`];
-                        if (nilai >= 1 && nilai <= 5) frekuensi[nilai - 1]++;
-                    });
-
-                    const ctx = document.getElementById(`canvas_q_${soal.no}`).getContext('2d');
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: ['1', '2', '3', '4', '5'],
-                            datasets: [{
-                                data: frekuensi,
-                                backgroundColor: ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#10b981'],
-                                borderRadius: 3
-                            }]
-                        },
-                        options: {
-                            indexAxis: 'y',
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: { legend: { display: false } },
-                            scales: {
-                                x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 } } },
-                                y: { ticks: { font: { size: 9, weight: 'bold' } }, grid: { display: false } }
-                            }
-                        }
-                    });
-                });
-            } catch (e) {
-                chartsGrid.innerHTML = '<p class="text-center text-red-500 col-span-2 py-8">Gagal memuat grafik. Periksa kembali API_URL Anda.</p>';
+            } else {
+                dataResponden = databaseBackupLokal;
             }
+
+            chartsGrid.innerHTML = '';
+            if (!dataResponden || dataResponden.length === 0) {
+                chartsGrid.innerHTML = '<p class="text-center text-gray-500 col-span-2 py-8">Belum ada data responden yang masuk.</p>';
+                return;
+            }
+
+            dataSoal.forEach((soal) => {
+                const chartCard = document.createElement('div');
+                chartCard.className = "bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col justify-between shadow-sm";
+                chartCard.innerHTML = `
+                    <div class="mb-2">
+                        <span class="text-[10px] font-bold px-2 py-0.5 bg-gray-200 text-gray-700 rounded">No. ${soal.no}</span>
+                        <p class="text-xs font-semibold text-gray-700 mt-1">${soal.text}</p>
+                    </div>
+                    <div class="relative w-full h-32 bg-white p-1 rounded border">
+                        <canvas id="canvas_q_${soal.no}"></canvas>
+                    </div>
+                `;
+                chartsGrid.appendChild(chartCard);
+
+                let frekuensi = [0, 0, 0, 0, 0];
+                dataResponden.forEach(res => {
+                    let nilai = res[`q_${soal.no}`];
+                    if (nilai >= 1 && nilai <= 5) frekuensi[nilai - 1]++;
+                });
+
+                const ctx = document.getElementById(`canvas_q_${soal.no}`).getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['1', '2', '3', '4', '5'],
+                        datasets: [{
+                            data: frekuensi,
+                            backgroundColor: ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#10b981'],
+                            borderRadius: 3
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 } } },
+                            y: { ticks: { font: { size: 9, weight: 'bold' } }, grid: { display: false } }
+                        }
+                    }
+                });
+            });
         }
 
-        // FUNGSI MEMBACA PASSWORD RAHASIA UNTUK LIHAT GRAFIK
         function bukaPanelRahasia() {
             const passwordInput = prompt("Masukkan password khusus peneliti untuk melihat hasil grafik:");
             if (passwordInput === KODE_AKSES_RAHASIA) {
@@ -299,7 +306,6 @@
             }
         }
 
-        // FUNGSI KIRIM JAWABAN ONLINE KE GOOGLE SHEETS
         async function handleSubmit(event) {
             event.preventDefault();
             
@@ -321,23 +327,25 @@
                 paketData[`q_${soal.no}`] = checked ? parseInt(checked.value) : 0;
             });
 
-            alert("Sedang mengirim jawaban Anda secara online...");
+            databaseBackupLokal.push(paketData);
 
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(paketData)
-                });
-
-                alert("Terika kasih! Jawaban Anda telah sukses tersimpan permanen di Google Sheets.");
-                document.getElementById('quizForm').reset();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-
-                if (!document.getElementById('panel-admin').classList.contains('hidden')) {
-                    renderSemuaGrafik();
+            if (API_URL !== "") {
+                alert("Sedang mengirim jawaban Anda secara online...");
+                try {
+                    await fetch(API_URL, { method: 'POST', body: JSON.stringify(paketData) });
+                    alert("Terima kasih! Jawaban Anda telah sukses tersimpan di Google Sheets.");
+                } catch (error) {
+                    alert("Gagal mengirim online, data disimpan sementara di browser ini.");
                 }
-            } catch (error) {
-                alert("Gagal mengirim data, periksa koneksi internet Anda dan coba lagi.");
+            } else {
+                alert("Terima kasih! Jawaban Anda berhasil tersimpan di sistem lokal browser.");
+            }
+
+            document.getElementById('quizForm').reset();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (!document.getElementById('panel-admin').classList.contains('hidden')) {
+                renderSemuaGrafik();
             }
         }
     </script>
