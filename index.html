@@ -184,8 +184,7 @@
             { no: 46, ind: "10. Dampak terhadap identitas diri & keyakinan agama", text: "Saya khawatir bahwa konten LGBT yang terus beredar dapat memengaruhi teman-teman saya yang imannya lebih lemah." },
             { no: 47, ind: "10. Dampak terhadap identitas diri & keyakinan agama", text: "Saya semakin bangga dengan identitas Islam saya setelah menyadari bahaya konten LGBT." }
         ];
-
-       const container = document.getElementById('questionnaire-container');
+        const container = document.getElementById('questionnaire-container');
 let currentInd = "";
 
 // GENERATE PERTANYAAN KUESIONER DI LAYAR
@@ -219,7 +218,7 @@ dataSoal.forEach((soal) => {
     container.appendChild(itemBlock);
 });
 
-// FUNGSI MEMBACA DATA DARI GOOGLE SHEETS DAN MEMBUAT GRAFIK batang
+// FUNGSI MEMBACA DATA DARI GOOGLE SHEETS DAN MEMBUAT GRAFIK BATANG
 async function renderSemuaGrafik() {
     const chartsGrid = document.getElementById('charts-grid');
     chartsGrid.innerHTML = '<p class="text-center text-gray-500 col-span-2 py-8">Memuat data grafik dari Google Sheets...</p>';
@@ -335,6 +334,7 @@ async function handleSubmit(event) {
     } catch (error) {
         alert("Gagal mengirim data, periksa koneksi internet Anda dan coba lagi.");
     }
+}
 }
     </script>
 </body>
